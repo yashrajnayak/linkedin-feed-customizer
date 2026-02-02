@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Feed Customizer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>LinkedIn Feed Customizer</h1>
+      <p class="subtitle">Hide posts with specific keywords</p>
+    </div>
+
+    <div class="toggle-section">
+      <label class="toggle-label">
+        <input type="checkbox" id="toggleEnabled" checked>
+        <span class="toggle-slider"></span>
+        <span class="toggle-text">Enable Filter</span>
+      </label>
+    </div>
+
+    <div class="stats-display" id="stats">0 posts hidden</div>
+
+    <div class="main-content">
+      <div class="input-section">
+        <label for="keywordInput">Add Keyword:</label>
+        <div class="input-group">
+          <input
+            type="text"
+            id="keywordInput"
+            placeholder="e.g., crypto, promotions, spam"
+            maxlength="50"
+          >
+          <button id="addBtn" class="btn btn-add">Add</button>
+        </div>
+        <small class="info-text">Separate keywords with commas or add one at a time</small>
+      </div>
+
+      <div class="keywords-section">
+        <h3>Current Keywords:</h3>
+        <div id="keywordsList" class="keywords-list">
+          <p class="empty-message">No keywords added yet</p>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button id="applyBtn" class="btn btn-apply">Apply Changes</button>
+        <div class="secondary-buttons">
+          <button id="exportBtn" class="btn btn-secondary" title="Export settings to JSON">Export</button>
+          <button id="importBtn" class="btn btn-secondary" title="Import settings from JSON">Import</button>
+          <input type="file" id="importFileInput" accept=".json" style="display: none;">
+        </div>
+        <button id="clearAllBtn" class="btn btn-danger">Clear All</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Posts containing these keywords will be hidden from your feed</p>
+      <a href="https://github.com/yashrajnayak/linkedin-feed-customizer" target="_blank">GitHub</a>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
