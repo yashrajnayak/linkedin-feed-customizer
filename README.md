@@ -1,19 +1,17 @@
 # LinkedIn Feed Customizer
 
-A Chrome extension that helps you customize your LinkedIn feed by hiding posts containing specific keywords. Perfect for filtering out unwanted content like promotions, spam, or topics you're not interested in.
+A lightweight Chrome extension that automatically hides LinkedIn feed posts containing user-specified keywords. Designed to be privacy-first, performant, and unobtrusive.
 
-## Features
+## Highlights
 
-✨ **Keyword Filtering** - Hide posts containing any of your specified keywords  
-🔄 **Real-time Updates** - Works with infinite scroll, automatically hiding new posts  
-📊 **Statistics** - Track how many posts have been hidden from your feed  
-💾 **Persistent Storage** - Your keywords are saved locally  
-📥 **Export/Import** - Backup your keywords to JSON and restore them anytime  
-🌓 **Dark Mode** - Automatically adapts to your system theme  
-⌨️ **Keyboard Shortcut** - Press Alt+Shift+L (Cmd+Shift+L on Mac) to open popup  
-⚡ **Optimized Performance** - Debounced filtering for smooth scrolling  
-🎯 **Easy to Use** - Simple popup interface with input validation  
-🔒 **Privacy Focused** - All data stored locally, no external servers
+- ✨ **Automatic Keyword Filtering** — Posts matching your keywords are hidden automatically (no manual "Apply" click required).
+- 🔄 **Works with Infinite Scroll** — New posts loaded while scrolling are checked and hidden in real time.
+- 🧩 **Minimal Popup UI** — Compact, modern popup (no scrollbars) to add/remove keywords quickly.
+- 📊 **Session Statistics** — See how many posts were hidden during the current session.
+- 💾 **Local Storage** — Keywords are stored in Chrome's local storage (no cloud sync by default).
+- 📥 **Export / Import** — Backup and restore keywords via JSON.
+- 🌓 **Dark Mode** — Matches system theme.
+- 🔒 **Privacy First** — All processing happens locally; nothing is sent to external servers.
 
 ## Installation
 
@@ -29,31 +27,23 @@ A Chrome extension that helps you customize your LinkedIn feed by hiding posts c
 
 ## Usage
 
-### Adding Keywords
+### Adding & Managing Keywords
 
-1. **Open the Popup**: Click the extension icon in your Chrome toolbar while on LinkedIn (or press Alt+Shift+L)
+1. **Open the popup**: Click the extension icon (or use the keyboard shortcut). The popup is intentionally minimal and compact.
 
-2. **Add Keywords**:
-   - Type a keyword in the input field (e.g., "crypto", "promoting", "hiring")
-   - Press Enter or click "Add"
-   - You can add multiple keywords separated by commas
-   - Maximum 100 characters per keyword, 50 keywords total
+2. **Add keywords**:
+   - Type one or more comma-separated keywords into the input (e.g., "crypto, spam") and press Enter or click Add.
+   - Each keyword is normalized (lowercased) and deduplicated.
+   - Limits: 100 characters per keyword, up to 50 keywords.
 
-3. **Manage Keywords**:
-   - View all your keywords in the list below the input field
-   - Click the × button next to any keyword to remove it (auto-applies immediately)
-   - Click "Clear All" to remove all keywords at once
+3. **Manage keywords**:
+   - Keywords appear as compact chips/tags in the popup. Click the × on a chip to remove it — removals apply immediately.
+   - There is no "Clear All" button in the minimal UI; remove individual keywords or import a fresh list if needed.
 
-### Applying Changes
+### How changes are applied
 
-4. **Apply Filter**:
-   - Click "Apply Changes" to start filtering
-   - The extension will immediately hide posts containing your keywords
-   - New posts loaded via infinite scroll are automatically checked
-
-5. **Toggle Filter**:
-   - Use the "Enable Filter" toggle to turn filtering on/off without removing your keywords
-   - This is useful when you want to see all posts temporarily
+- Filters are applied automatically whenever you add/remove keywords or toggle the filter on/off. There's no need for an "Apply" button.
+- The content script uses a debounced MutationObserver to hide posts visible on load and any newly loaded posts during scrolling.
 
 ### Backup & Restore
 
@@ -102,14 +92,14 @@ Here are some common keywords people filter:
 ### File Structure
 ```
 linkedin-feed-customizer/
-├── manifest.json          # Extension configuration and permissions
-├── content.js            # Main content script (183 lines) - runs on LinkedIn
-├── popup.js              # Popup UI logic (334 lines) - keyword management
-├── popup.html            # Popup interface markup (67 lines)
-├── popup.css             # Styling with dark mode support (411 lines)
-├── icons/                # Extension icon assets (4 sizes: 16, 32, 48, 128px)
-├── generate_icons.py     # Python script to regenerate icons
-└── README.md             # This file
+├── manifest.json        # Extension configuration and permissions
+├── content.js           # Content script - hides posts and observes feed
+├── popup.js             # Popup UI logic - keyword management + messaging
+├── popup.html           # Popup interface markup (minimal modern UI)
+├── popup.css            # Popup styling (minimal, dark mode supported)
+├── icons/               # Extension icon assets
+├── generate_icons.py    # Python script to regenerate icons
+└── README.md            # This file
 ```
 
 ### Manifest Version
@@ -186,7 +176,7 @@ A: No, the extension uses debounced filtering (max 100ms check intervals) and is
 A: No, the extension only reads publicly visible feed content using allowed permissions (storage, scripting, activeTab).
 
 **Q: Do I need to restart my browser for changes to take effect?**
-A: No, changes apply immediately when you click "Apply Changes" button.
+A: No. Changes apply automatically when you add/remove keywords or toggle the filter; no restart or manual "Apply" is required.
 
 **Q: What happens if LinkedIn changes their HTML structure?**
 A: The extension uses multiple fallback selectors and reinitializes every 5 minutes. We monitor for changes and push updates.
@@ -201,7 +191,7 @@ A: Not by default - data is stored locally. You can use Export/Import to backup 
 A: No, this is an independent open-source third-party extension respecting LinkedIn's Terms of Service.
 
 **Q: What happens to the hidden post count when I refresh the page?**
-A: The counter resets on page refresh (it only tracks posts hidden during current session). Your keywords are saved permanently.
+A: The counter tracks posts hidden during the current session and may reset on page reloads. Keywords remain saved in local storage.
 
 **Q: Can I temporarily disable filtering without removing my keywords?**
 A: Yes, use the "Enable Filter" toggle in the popup to turn filtering on/off while keeping your keywords saved.
@@ -233,7 +223,5 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 This extension is not affiliated with, endorsed by, or connected to LinkedIn. LinkedIn is a registered trademark of Microsoft Corporation. Use at your own risk and in compliance with LinkedIn's [Terms of Service](https://www.linkedin.com/legal/user-agreement).
 
 ---
-
-**Made with ❤️ by [Yashraj Nayak](https://github.com/yashrajnayak)**
 
 If you find this extension helpful, please ⭐ this repo and consider sharing it with others!

@@ -9,56 +9,70 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>LinkedIn Feed Customizer</h1>
-      <p class="subtitle">Hide posts with specific keywords</p>
+      <div class="header-content">
+        <h1>Feed Customizer</h1>
+        <p class="subtitle">Hide posts with keywords</p>
+      </div>
     </div>
-
-    <div class="toggle-section">
-      <label class="toggle-label">
-        <input type="checkbox" id="toggleEnabled" checked>
-        <span class="toggle-slider"></span>
-        <span class="toggle-text">Enable Filter</span>
-      </label>
-    </div>
-
-    <div class="stats-display" id="stats">0 posts hidden</div>
 
     <div class="main-content">
-      <div class="input-section">
-        <label for="keywordInput">Add Keyword:</label>
+      <div class="toggle-card">
+        <div class="toggle-info">
+          <h3>Enable Filter</h3>
+          <p>Auto-hide matching posts</p>
+        </div>
+        <label class="toggle-label">
+          <input type="checkbox" id="toggleEnabled" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="stats-card" id="stats">
+        <div class="stat-icon">🔒</div>
+        <div class="stat-content">
+          <div class="stat-number">0</div>
+          <div class="stat-label">Posts Hidden</div>
+        </div>
+      </div>
+
+      <div class="input-card">
+        <label for="keywordInput" class="input-label">Add Keyword</label>
         <div class="input-group">
           <input
             type="text"
             id="keywordInput"
-            placeholder="e.g., crypto, promotions, spam"
-            maxlength="50"
+            placeholder="e.g., crypto, spam"
+            maxlength="100"
           >
-          <button id="addBtn" class="btn btn-add">Add</button>
+          <button id="addBtn" class="btn btn-add">
+            <span class="btn-icon">+</span>
+          </button>
         </div>
-        <small class="info-text">Separate keywords with commas or add one at a time</small>
+        <small class="input-hint">Separate with commas</small>
       </div>
 
-      <div class="keywords-section">
-        <h3>Current Keywords:</h3>
+      <div class="keywords-card">
+        <h3 class="card-title">Keywords</h3>
         <div id="keywordsList" class="keywords-list">
-          <p class="empty-message">No keywords added yet</p>
+          <p class="empty-state">Add keywords to start</p>
         </div>
       </div>
 
       <div class="action-buttons">
-        <button id="applyBtn" class="btn btn-apply">Apply Changes</button>
-        <div class="secondary-buttons">
-          <button id="exportBtn" class="btn btn-secondary" title="Export settings to JSON">Export</button>
-          <button id="importBtn" class="btn btn-secondary" title="Import settings from JSON">Import</button>
-          <input type="file" id="importFileInput" accept=".json" style="display: none;">
-        </div>
-        <button id="clearAllBtn" class="btn btn-danger">Clear All</button>
+        <button id="exportBtn" class="btn btn-secondary">
+          📥 Export
+        </button>
+        <button id="importBtn" class="btn btn-secondary">
+          📤 Import
+        </button>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
       </div>
     </div>
 
     <div class="footer">
-      <p>Posts containing these keywords will be hidden from your feed</p>
       <a href="https://github.com/yashrajnayak/linkedin-feed-customizer" target="_blank">GitHub</a>
+      <span class="divider">•</span>
+      <span>v1.0</span>
     </div>
   </div>
 

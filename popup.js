@@ -2,8 +2,6 @@
 
 const keywordInput = document.getElementById('keywordInput');
 const addBtn = document.getElementById('addBtn');
-const applyBtn = document.getElementById('applyBtn');
-const clearAllBtn = document.getElementById('clearAllBtn');
 const keywordsList = document.getElementById('keywordsList');
 const toggleEnabled = document.getElementById('toggleEnabled');
 const statsDiv = document.getElementById('stats');
@@ -37,7 +35,13 @@ function loadKeywords() {
  */
 function updateStats(hiddenCount) {
   if (statsDiv) {
-    statsDiv.textContent = `${hiddenCount} posts hidden`;
+    statsDiv.innerHTML = `
+      <div class="stat-icon">🔒</div>
+      <div class="stat-content">
+        <div class="stat-number">${hiddenCount}</div>
+        <div class="stat-label">Posts Hidden</div>
+      </div>
+    `;
   }
 }
 
@@ -118,6 +122,8 @@ function addKeyword() {
   keywords.push(...newKeywords);
   keywordInput.value = '';
   renderKeywords();
+  saveKeywords();
+  applyChanges();
   keywordInput.focus();
 }
 
@@ -131,13 +137,9 @@ function removeKeyword(keyword) {
   renderKeywords();
   applyChanges(); // Auto-apply immediately
 }
-
-/**
- * Render the keywords list in the popup
- */
 function renderKeywords() {
   if (keywords.length === 0) {
-    keywordsList.innerHTML = '<p class="empty-message">No keywords added yet</p>';
+    keywordsList.innerHTML = '<p class="empty-state">Add keywords to start</p>';
     return;
   }
 
@@ -200,38 +202,10 @@ function applyChanges() {
           if (response && response.hiddenCount !== undefined) {
             updateStats(response.hiddenCount);
           }
-
-          // Show feedback
-          const originalText = applyBtn.textContent;
-          applyBtn.textContent = '✓ Applied';
-          applyBtn.style.opacity = '0.7';
-          setTimeout(() => {
-            applyBtn.textContent = originalText;
-            applyBtn.style.opacity = '1';
-          }, 2000);
         }
       );
-    } else {
-      showNotification('Open LinkedIn feed to apply filter', 'info');
     }
   });
-}
-
-/**
- * Clear all keywords
- */
-function clearAllKeywords() {
-  if (keywords.length === 0) {
-    showNotification('No keywords to clear', 'info');
-    return;
-  }
-
-  if (confirm('Are you sure you want to clear all keywords?')) {
-    keywords = [];
-    saveKeywords();
-    renderKeywords();
-    showNotification('All keywords cleared', 'info');
-  }
 }
 
 /**
@@ -299,8 +273,6 @@ function handleToggle() {
 
 // Event listeners
 addBtn.addEventListener('click', addKeyword);
-applyBtn.addEventListener('click', applyChanges);
-clearAllBtn.addEventListener('click', clearAllKeywords);
 toggleEnabled.addEventListener('change', handleToggle);
 if (exportBtn) exportBtn.addEventListener('click', exportSettings);
 if (importBtn) importBtn.addEventListener('click', () => importFileInput.click());

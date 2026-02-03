@@ -13,7 +13,7 @@ initializeExtension();
  * Initialize the extension
  */
 function initializeExtension() {
-  chrome.storage.local.get(['keywords', 'isEnabled'], (data) => {
+  chrome.storage.local.get(['keywords', 'isEnabled', 'hiddenCount'], (data) => {
     if (chrome.runtime.lastError) {
       console.error('Storage error:', chrome.runtime.lastError);
       return;
@@ -21,17 +21,36 @@ function initializeExtension() {
 
     currentEnabled = data.isEnabled !== false;
     currentKeywords = data.keywords || [];
+    hiddenCount = data.hiddenCount || 0;
 
+    // Set up observer to watch for new posts as they load
+    observeNewPosts(currentKeywords);
+
+    // Hide existing posts immediately
     if (currentEnabled && currentKeywords.length > 0) {
       hidePosts(currentKeywords);
-      observeNewPosts(currentKeywords);
     }
+
+    // Also call hidePosts after delays to catch posts that are still loading
+    setTimeout(() => {
+      if (currentEnabled && currentKeywords.length > 0) {
+        hidePosts(currentKeywords);
+      }
+    }, 500);
+
+    setTimeout(() => {
+      if (currentEnabled && currentKeywords.length > 0) {
+        hidePosts(currentKeywords);
+      }
+    }, 2000);
   });
 
   // Periodically reinitialize observer (every 5 minutes) in case LinkedIn structure changes
   setInterval(() => {
-    if (observer && currentKeywords.length > 0) {
-      observer.disconnect();
+    if (currentKeywords.length > 0) {
+      if (observer) {
+        observer.disconnect();
+      }
       observeNewPosts(currentKeywords);
     }
   }, 5 * 60 * 1000);
@@ -116,12 +135,17 @@ function observeNewPosts(keywords) {
   observer = new MutationObserver((mutations) => {
     clearTimeout(debounceTimeout);
     debounceTimeout = setTimeout(() => {
+      // Use currentKeywords to always get the latest keywords
+      if (currentKeywords.length === 0 || !currentEnabled) {
+        return;
+      }
+
       mutations.forEach((mutation) => {
         // Check if new nodes were added
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === 1) {
             // Element node
-            if (shouldHidePost(node, keywords)) {
+            if (shouldHidePost(node, currentKeywords)) {
               hidePost(node);
             }
 
@@ -131,7 +155,7 @@ function observeNewPosts(keywords) {
                 'div[data-id*="activity"], div[class*="update-components-feed"], .feed-item, article'
               );
               childPosts.forEach((post) => {
-                if (shouldHidePost(post, keywords)) {
+                if (shouldHidePost(post, currentKeywords)) {
                   hidePost(post);
                 }
               });
@@ -165,13 +189,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   try {
     if (request.action === 'updateKeywords') {
       currentKeywords = request.keywords || [];
-      hidePosts(currentKeywords);
+      
+      // Ensure observer is set up for new posts
+      if (observer) {
+        observer.disconnect();
+      }
+      observeNewPosts(currentKeywords);
+      
+      // Hide posts immediately
+      if (currentEnabled && currentKeywords.length > 0) {
+        hidePosts(currentKeywords);
+      }
+      
       sendResponse({ status: 'Keywords updated', hiddenCount });
     } else if (request.action === 'toggleEnabled') {
       currentEnabled = request.enabled;
+      
+      // Set up or tear down observer based on enabled state
       if (request.enabled && currentKeywords.length > 0) {
+        if (observer) {
+          observer.disconnect();
+        }
+        observeNewPosts(currentKeywords);
         hidePosts(currentKeywords);
+      } else if (!request.enabled && observer) {
+        observer.disconnect();
       }
+      
       sendResponse({ status: 'Toggle updated', hiddenCount });
     } else if (request.action === 'getStats') {
       sendResponse({ hiddenCount, keywordCount: currentKeywords.length });
