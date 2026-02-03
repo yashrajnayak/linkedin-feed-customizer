@@ -10,16 +10,17 @@
   <div class="container">
     <div class="header">
       <div class="header-content">
-        <h1>Feed Customizer</h1>
-        <p class="subtitle">Hide posts with keywords</p>
+        <h1>Feed Filter</h1>
+        <p class="subtitle">Customize your professional feed</p>
       </div>
     </div>
 
     <div class="main-content">
       <div class="toggle-card">
+        <div class="toggle-icon">🔍</div>
         <div class="toggle-info">
           <h3>Enable Filter</h3>
-          <p>Auto-hide matching posts</p>
+          <p>Hide posts by keywords</p>
         </div>
         <label class="toggle-label">
           <input type="checkbox" id="toggleEnabled" checked>
@@ -28,10 +29,13 @@
       </div>
 
       <div class="stats-card" id="stats">
-        <div class="stat-icon">🔒</div>
-        <div class="stat-content">
+        <svg class="circular-progress" width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="35" class="progress-bg"></circle>
+          <circle cx="40" cy="40" r="35" class="progress-fill" style="stroke-dasharray: 0 219.8"></circle>
+        </svg>
+        <div class="stats-overlay">
           <div class="stat-number">0</div>
-          <div class="stat-label">Posts Hidden</div>
+          <div class="stat-label">HIDDEN</div>
         </div>
       </div>
 
@@ -52,27 +56,25 @@
       </div>
 
       <div class="keywords-card">
-        <h3 class="card-title">Keywords</h3>
+        <h3 class="card-title">FILTERED KEYWORDS</h3>
         <div id="keywordsList" class="keywords-list">
-          <p class="empty-state">Add keywords to start</p>
+          <p class="empty-state">No keywords added yet</p>
         </div>
       </div>
 
       <div class="action-buttons">
         <button id="exportBtn" class="btn btn-secondary">
-          📥 Export
+          ⬇ Export
         </button>
         <button id="importBtn" class="btn btn-secondary">
-          📤 Import
+          ⬆ Import
         </button>
         <input type="file" id="importFileInput" accept=".json" style="display: none;">
       </div>
     </div>
 
     <div class="footer">
-      <a href="https://github.com/yashrajnayak/linkedin-feed-customizer" target="_blank">GitHub</a>
-      <span class="divider">•</span>
-      <span>v1.0</span>
+      <span>Credits: <a href="https://github.com/yashrajnayak/linkedin-feed-customizer" target="_blank" class="footer-link">Yashraj Nayak</a></span>
     </div>
   </div>
 

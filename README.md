@@ -15,18 +15,15 @@ A lightweight Chrome extension that automatically hides LinkedIn feed posts cont
 
 ## Installation
 
-[![Download Extension](https://img.shields.io/badge/Download-Extension-success?style=for-the-badge&logo=download)](https://github.com/yashrajnayak/linkedin-feed-customizer/archive/refs/heads/main.zip)
+1. Download this repository and extract zip to folder.
 
-1. Download the repository as a ZIP file
-2. Extract the ZIP file to a folder on your computer
-3. Open your browser and navigate to the extensions page:
+2. Open Chrome and go to `chrome://extensions/`
 
-- Chrome: chrome://extensions/
-- Edge: edge://extensions/
-- Brave: brave://extensions/
+3. Enable "Developer mode" (toggle in the top right)
 
-4. Enable "Developer mode" by toggling the switch, then click "Load unpacked" button and select the extracted extension folder
-The extension icon should appear in your browser toolbar
+4. Click "Load unpacked"
+
+5. Select the `linkedin-feed-customizer` folder
 
 ## Usage
 
@@ -40,12 +37,12 @@ The extension icon should appear in your browser toolbar
    - Limits: 100 characters per keyword, up to 50 keywords.
 
 3. **Manage keywords**:
-   - Keywords appear as compact chips/tags in the popup.
-   - Click the × on a chip to remove it — removals apply immediately.
+   - Keywords appear as compact chips/tags in the popup. Click the × on a chip to remove it — removals apply immediately.
+   - There is no "Clear All" button in the minimal UI; remove individual keywords or import a fresh list if needed.
 
 ### How changes are applied
 
-- Filters are applied automatically whenever you add/remove keywords or toggle the filter on/off.
+- Filters are applied automatically whenever you add/remove keywords or toggle the filter on/off. There's no need for an "Apply" button.
 - The content script uses a debounced MutationObserver to hide posts visible on load and any newly loaded posts during scrolling.
 
 ### Backup & Restore
@@ -63,6 +60,21 @@ The extension icon should appear in your browser toolbar
 8. **Statistics Display**:
    - See how many posts have been hidden from your feed
    - Updated automatically as the extension filters posts
+
+## Examples of Keywords
+
+Here are some common keywords people filter:
+
+- **Content Type**: promoting, hiring, congratulations, promoted, reposted
+- **Topics**: crypto, nft, blockchain, meme, cryptocurrency
+- **Industry**: recruitment, agency, freelance, consultant
+- **Spam Indicators**: click here, link in bio, free money, limited time
+- **Unwanted Posts**: job posting, ad, advertisement, celebration
+
+**Tips**: 
+- Keywords are case-insensitive ("Crypto" and "crypto" both match the same posts)
+- Use specific keywords for better results
+- Avoid very common words that might hide legitimate posts
 
 ## How It Works
 
@@ -149,6 +161,12 @@ This extension:
 - Code is open-source for transparency
 - Report security issues directly to maintainers
 
+### Response Time & Support
+- Issues: Typically addressed within 48 hours
+- PRs: Reviewed within 1 week
+- Feature requests: Assessed for roadmap alignment
+- No guaranteed SLA (maintained by volunteers)
+
 ## FAQ
 
 **Q: Will this extension slow down LinkedIn?**
@@ -180,6 +198,22 @@ A: Yes, use the "Enable Filter" toggle in the popup to turn filtering on/off whi
 
 **Q: Does this extension work on LinkedIn mobile app?**
 A: No, this extension only works on desktop browser version. Mobile apps have separate architecture.
+
+## Credits & Acknowledgments
+
+### Development
+- Created and maintained by [Yashraj Nayak](https://github.com/yashrajnayak)
+- Built as a productivity tool for LinkedIn users
+
+### Tools & Technologies
+- Chrome Extension API (Manifest V3)
+- JavaScript (ES2021+ standards)
+- Chrome Storage & Messaging APIs
+- Python + Pillow (icon generation)
+
+### Community
+- Thanks to all users who report bugs and request features
+- Contributions welcome - see [Contributing](#contributing) section
 
 ## License
 

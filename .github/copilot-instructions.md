@@ -1,116 +1,132 @@
 # LinkedIn Feed Customizer - AI Agent Instructions
 
 ## Project Overview
-A Chrome Extension (Manifest V3) that hides LinkedIn feed posts containing user-specified keywords. **Key focus**: performance and robustness on LinkedIn's dynamic feed.
+A Chrome Extension (Manifest V3) that hides LinkedIn feed posts containing user-specified keywords. **Key focus**: robust filtering on LinkedIn's asynchronously-loaded, dynamic feed.
 
 ## Architecture
 
 ### Component Interaction
 ```
-popup.html/css/js (450px popup UI)
+popup.html/css/js (minimal popup UI)
     ↓ (chrome.storage.local)
-manifest.json (permissions, host_permissions)
+manifest.json (MV3 permissions, host_permissions)
     ↓ (chrome.runtime.onMessage)
-content.js (runs on linkedin.com/*, scans posts with MutationObserver)
+content.js (runs on linkedin.com/*, 3-pronged post hiding + MutationObserver)
 ```
 
 ### Data Flow
-1. **Popup → Storage**: Keywords saved to `chrome.storage.local` with `isEnabled` flag
-2. **Content Script → Storage**: Increments `hiddenCount` on each hidden post
-3. **Popup ↔ Content Script**: Messages for keyword updates trigger immediate filtering
+1. **Popup → Storage**: Keywords saved to `chrome.storage.local` with `isEnabled` flag (lowercase, deduplicated)
+2. **Content Script → Storage**: Increments `hiddenCount` on each match
+3. **Popup ↔ Content Script**: Messages trigger keyword updates or toggle enable/disable
 
 ## Critical Patterns & Conventions
 
-### 1. Post Hiding Logic (content.js)
-**Multiple fallback selectors** (robustness for LinkedIn's dynamic structure):
-```javascript
-const postSelectors = [
-  'div[data-id*="activity"]',      // LinkedIn's primary post container
-  'div[class*="update-components-feed"]',
-  '.feed-item',
-  'article'
-];
-```
-- Use `shouldHidePost()` to avoid re-processing marked posts (`data-hidden-by-feed-customizer` attribute)
-- Always lowercase keyword + textContent comparisons (case-insensitive matching)
+### 1. Post Hiding Strategy (content.js)
+**Three-pronged approach** to handle LinkedIn's asynchronous post loading:
+
+1. **Immediate hiding** on `initializeExtension()` - catches already-loaded posts
+2. **Delayed hiding** (500ms, 2000ms timeouts) - catches posts still rendering during page load
+3. **MutationObserver** - detects new posts during infinite scroll via debounced callback (100ms)
+
+**Implementation**:
+- Use multiple fallback selectors for robustness (LinkedIn structure changes frequently):
+  ```javascript
+  ['div[data-id*="activity"]', 'div[class*="update-components-feed"]', '.feed-item', 'article']
+  ```
+- Always check `shouldHidePost()` to avoid reprocessing posts already marked with `data-hidden-by-feed-customizer` attribute
+- **Always lowercase** both keywords and textContent: `textContent.toLowerCase().includes(keyword.toLowerCase())`
 
 ### 2. Performance Optimizations
-- **MutationObserver debouncing**: 100ms timeout in `observeNewPosts()` (prevents lag during scrolling)
-- **Event delegation**: Single listener on `#keywordsList` for all keyword removals (popup.js)
-- **Lazy re-initialization**: Observer reconnects every 5 minutes to adapt to LinkedIn structure changes
-- **Selective processing**: Skip already-hidden posts via attribute check
+- **MutationObserver debouncing**: 100ms timeout (prevents lag during scrolling)
+- **Event delegation**: Single listener on `#keywordsList` handles all keyword removals
+- **Observer re-initialization**: Every 5 minutes to adapt to LinkedIn DOM changes
+- **Lazy storage reads**: Load keywords once; update via messaging only
 
 ### 3. Messaging Architecture
-**From popup to content script** (apply changes):
+All content script message handlers return responses via `sendResponse()`:
 ```javascript
-chrome.tabs.sendMessage(tabId, {
-  action: 'updateKeywords',
-  keywords: array
-}, (response) => sendResponse({ hiddenCount }));
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'updateKeywords') { 
+    // Re-init observer, hide posts, return hiddenCount
+  }
+  sendResponse({ status: '...', hiddenCount });
+});
 ```
-- Always queries active tab URL first (must contain 'linkedin.com')
-- Handles `chrome.runtime.lastError` for inactive tabs/unavailable script
+**Message actions**:
+- `updateKeywords` - Popup sends new keywords; trigger `hidePosts()` + re-init observer
+- `toggleEnabled` - Control enable/disable without removing keywords  
+- `getStats` - Retrieve current hiddenCount and keywordCount
 
-### 4. Storage Keys & Schema
+**Critical**: Always check active tab URL includes `linkedin.com` before messaging
+
+### 4. Storage Schema
 ```javascript
 {
-  keywords: string[],        // Lowercase, deduplicated, max 50 items
+  keywords: string[],        // Lowercase, deduplicated, max 50 items, max 100 chars each
   isEnabled: boolean,        // Default: true
-  hiddenCount: number,       // Session metric (resets on page load)
+  hiddenCount: number,       // Session counter (resets on page reload)
   exportDate: string         // ISO timestamp (export metadata only)
 }
 ```
 
 ### 5. UI Patterns
-- **Toast notifications** (not alerts) for user feedback with 3-second fade
-- **HTML escaping**: `escapeHtml()` for dynamic keyword display (XSS prevention)
-- **Dark mode support**: Uses `@media (prefers-color-scheme: dark)` in popup.css
-- **Keyboard shortcut**: Alt+Shift+L (Windows/Linux), Cmd+Shift+L (macOS) in manifest.json
+- **Toast notifications**: 3-second fade (not alerts); use `showNotification(msg, type)`
+- **HTML escaping**: Use `escapeHtml()` for any dynamic keyword display (XSS prevention)
+- **Dark mode**: Built into CSS via `@media (prefers-color-scheme: dark)`
+- **Comma-separated input**: Popup supports "crypto, spam" → stored as ["crypto", "spam"]
+- **Event delegation**: Click handler on `#keywordsList` for all remove buttons (data-keyword attribute)
 
 ## Developer Workflows
 
 ### Testing Content Script Changes
-1. Modify `content.js` (post hiding logic)
-2. Run `chrome://extensions/` → Remove extension
-3. Load unpacked extension again
-4. Hard refresh LinkedIn page
-5. Open DevTools → test with console: `chrome.storage.local.get(console.log)`
+1. Modify `content.js` post hiding logic
+2. `chrome://extensions/` → Remove + reload unpacked extension
+3. Hard refresh LinkedIn page to re-execute `content_scripts`
+4. Monitor hiddenCount: `chrome.storage.local.get(['hiddenCount'], console.log)`
+5. Test post hiding at different timing stages: immediate, after 500ms, after 2000ms, during scroll
 
-### Testing Popup Changes
+### Testing Popup Changes  
 1. Modify popup.js/html/css
-2. Click extension icon to reload popup automatically (or restart at `chrome://extensions/`)
+2. Click extension icon to reload popup (changes apply instantly)
 3. No LinkedIn page reload needed
+4. Test keyboard input: Tab order, Enter key, comma-separated parsing
 
 ### Testing Storage/Messaging
-- Use content script's `chrome.runtime.onMessage.addListener` with action types: `updateKeywords`, `toggleEnabled`, `getStats`
-- Each message handler must call `sendResponse()` before async operations or use return true
+- Use `chrome.runtime.onMessage.addListener` to test each action handler
+- Each handler must call `sendResponse()` before returning
+- Verify message handlers handle `chrome.runtime.lastError` for inactive tabs
 
 ### Icon Generation
 ```bash
 python3 generate_icons.py
 ```
-Generates 16, 32, 48, 128px icons in `icons/` directory with LinkedIn blue gradient
+Generates 16, 32, 48, 128px icons in `icons/` directory (LinkedIn blue gradient)
 
 ## Integration Points
 
 ### Extension Permissions (manifest.json)
-- `storage` - Read/write keywords (never sent externally)
+- `storage` - Read/write keywords and state (never sent externally)
 - `scripting` - Inject content.js on LinkedIn
-- `activeTab` - Access current tab for messaging
+- `activeTab` - Query current tab for messaging
 - `host_permissions` - `https://www.linkedin.com/*`
 
-### External Dependencies
-**None** - Vanilla JavaScript, no npm packages
+### Keyboard Shortcuts (manifest.json)
+- **Windows/Linux**: `Alt + Shift + L` - Opens extension popup
+- **macOS**: `Cmd + Shift + L` - Opens extension popup
 
-### LinkedIn Implementation Details
+### External Dependencies
+**None** - Vanilla JavaScript, no npm packages, no build step
+
+### LinkedIn Structure Details
 - Posts detected via multiple selectors (avoid single-selector brittleness)
-- `feed-item` and `article` tags are most reliable
-- `data-id*="activity"` captures sponsored/native posts
-- Class names like `update-components-feed` change unexpectedly (why re-init every 5 min)
+- Class names change unexpectedly → observer re-initializes every 5 minutes
+- Use `[data-id*="activity"]` for sponsored/native posts
+- `article` and `.feed-item` are most reliable fallbacks
+- Content script runs at `document_end` to catch page-loaded posts
 
 ## Code Quality Standards
 
-### JSDoc Requirements
+### JSDoc Conventions
 All functions must have JSDoc with parameter types and return types:
 ```javascript
 /**
@@ -121,15 +137,16 @@ All functions must have JSDoc with parameter types and return types:
 ```
 
 ### Error Handling
-- Wrap message handlers in try-catch (content.js line 139+)
-- Log to console for debugging; show toasts for user-facing errors
-- Always handle `chrome.runtime.lastError` after async storage/messaging calls
+- Wrap message handlers in try-catch blocks
+- Use `console.error()` for debugging; show toasts via `showNotification()` for user-facing errors
+- Always check `chrome.runtime.lastError` after async storage/messaging calls
+- Gracefully degrade if LinkedIn structure unrecognizable (warn in console, continue)
 
 ### Naming Conventions
-- Variables: `camelCase` (currentKeywords, hiddenCount)
-- CSS classes: `kebab-case` (.btn-add, .toggle-slider)
+- Variables: `camelCase` (currentKeywords, hiddenCount, debounceTimeout)
+- CSS classes: `kebab-case` (.btn-add, .toggle-slider, .keyword-item)
 - Data attributes: `kebab-case` (data-hidden-by-feed-customizer, data-keyword)
-- Functions: `camelCase` with verbs (hidePost, shouldHidePost)
+- Functions: `camelCase` with verbs (hidePost, shouldHidePost, observeNewPosts)
 
 ## Common Tasks & Examples
 

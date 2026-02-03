@@ -31,17 +31,24 @@ function loadKeywords() {
 }
 
 /**
- * Update statistics display
+ * Update statistics display with circular progress
  */
 function updateStats(hiddenCount) {
   if (statsDiv) {
-    statsDiv.innerHTML = `
-      <div class="stat-icon">🔒</div>
-      <div class="stat-content">
-        <div class="stat-number">${hiddenCount}</div>
-        <div class="stat-label">Posts Hidden</div>
-      </div>
-    `;
+    // Update the number
+    const numberEl = statsDiv.querySelector('.stat-number');
+    if (numberEl) {
+      numberEl.textContent = hiddenCount;
+    }
+
+    // Update circular progress (max 100 for visualization)
+    const progressEl = statsDiv.querySelector('.progress-fill');
+    if (progressEl) {
+      const circumference = 2 * Math.PI * 35; // radius is 35
+      const progress = Math.min(hiddenCount, 100) / 100;
+      const dasharray = progress * circumference;
+      progressEl.style.strokeDasharray = `${dasharray} ${circumference}`;
+    }
   }
 }
 
@@ -139,7 +146,7 @@ function removeKeyword(keyword) {
 }
 function renderKeywords() {
   if (keywords.length === 0) {
-    keywordsList.innerHTML = '<p class="empty-state">Add keywords to start</p>';
+    keywordsList.innerHTML = '<p class="empty-state">No keywords added yet</p>';
     return;
   }
 
