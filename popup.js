@@ -289,6 +289,13 @@ if (importFileInput) {
   });
 }
 
+// Real-time stats update
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local' && changes.hiddenCount) {
+    updateStats(changes.hiddenCount.newValue);
+  }
+});
+
 // Allow adding keyword with Enter key
 keywordInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
